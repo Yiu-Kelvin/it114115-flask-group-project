@@ -1,13 +1,11 @@
-
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
 import jwt
-
+from sqlalchemy import and_, func
 from flask_login import UserMixin
 
 from werkzeug.security import generate_password_hash, check_password_hash
-
 
 followers = db.Table(
     'followers',
@@ -15,6 +13,11 @@ followers = db.Table(
     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
 )
 
+post_tags = db.Table(
+    'post_tags',    
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'))
+)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -84,9 +87,26 @@ def load_user(id):
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    title = db.Column(db.Text)
+    body = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    edited_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    tags = db.relationship('Tag', secondary=post_tags, lazy='dynamic', backref=db.backref('posts', lazy='dynamic'))
 
     def __repr__(self) -> str:
         return f'<Post {self.body}>'
+
+
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    description = db.Column(db.Text)
+
+    def posts_with_tag(self):
+        posts = Post.query.join(post_tags, and_(post_tags.c.tag_id == self.id, post_tags.c.post_id == Post.id ))
+        return posts
+
+    def __repr__(self) -> str:
+        return f'<Tag {self.name}>'
