@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        VARIANT: "3"
+        NODE_VERSION: "none"
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    networks:
+      - flask_app
+    links:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000" # app port
+      - "5001:5001" # app(debug) port
+      - "3000:3000" # remote debugger attach port
+
+  db:
+    container_name: flask-db
+    image: "mysql"
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3306"]
+        interval: 20s
+        timeout: 10s
+        retries: 5
+    networks:
+      - flask_app
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none' # disable saving logs
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
+    networks:
+      - flask_app
+
+networks:
+  flask_app:
+    driver: bridge
+
+volumes:
+  db-data:
