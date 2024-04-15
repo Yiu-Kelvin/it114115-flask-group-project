@@ -19,12 +19,25 @@ post_tags = db.Table(
     db.Column('post_id', db.Integer, db.ForeignKey('post.id'))
 )
 
+bookmarked_post = db.Table(
+    'bookmarked_post',
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+)
+
+followed_post = db.Table(
+    'followed_post',
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    bookmarked_post = db.relationship('Post', secondary=bookmarked_post, lazy='dynamic', backref=db.backref('bookmarked_by_user', lazy='dynamic'))
+    followed_post = db.relationship('Post', secondary=followed_post, lazy='dynamic', backref=db.backref('followed_post', lazy='dynamic'))
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     followed = db.relationship(
@@ -58,7 +71,7 @@ class User(UserMixin, db.Model):
     def is_following(self, user):
         return self.followed.filter(followers.c.followed_id == user.id).count() > 0
 
-    def followed_posts(self):
+    def posts_from_followed_user(self):
         followed = Post.query.join(
             followers, followers.c.followed_id == Post.user_id
         ).filter(followers.c.follower_id == self.id)

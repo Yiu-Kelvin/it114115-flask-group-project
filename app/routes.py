@@ -30,7 +30,7 @@ def index():
         flash(_('Your post is now live!'))
         return redirect(url_for('index'))
     page = request.args.get('page', 1, type=int)
-    posts = current_user.followed_posts().paginate(
+    posts = current_user.posts_from_followed_user().paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'index', page=posts.next_num) if posts.next_num else None
@@ -132,7 +132,7 @@ def reset_password(token):
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    posts = user.followed_posts().paginate(
+    posts = user.posts_from_followed_user().paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'index', page=posts.next_num) if posts.next_num else None
