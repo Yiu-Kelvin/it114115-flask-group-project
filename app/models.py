@@ -47,12 +47,15 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     bookmarked_post = db.relationship('Post', secondary=bookmarked_post, lazy='dynamic', backref=db.backref('bookmarked_by_user', lazy='dynamic'))
     followed_post = db.relationship('Post', secondary=followed_post, lazy='dynamic', backref=db.backref('followed_post', lazy='dynamic'))
+    answers = db.relationship('Answer', backref='author', lazy='dynamic')
     about_me = db.Column(db.String(140))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)    
     followed_tags = db.relationship('Tag', secondary=followed_tags, lazy='dynamic', backref=db.backref('followed_by_user', lazy='dynamic'))
     ignored_tags = db.relationship('Tag', secondary=ignored_tags, lazy='dynamic', backref=db.backref('ingored_by_user', lazy='dynamic'))
 
     
+    post_votes = db.relationship('PostVote', backref='user')
+    answer_votes = db.relationship('AnswerVote', backref='user')
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
@@ -121,7 +124,30 @@ class User(UserMixin, db.Model):
         ).filter(followers.c.follower_id == self.id)
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.created_at.desc())
+    def toggle_post_vote(self, post, vote):
+        post_vote = PostVote.query.filter_by(user_id=self.id, post=post).first()
+        if post_vote is None:
+            post_vote = PostVote(user_id=self.id, post=post, votes=vote)
+            db.session.add(post_vote)
+        else:
+            if post_vote.votes == vote:
+                db.session.delete(post_vote)
+            else:
+                post_vote.votes = vote
+        db.session.commit()
 
+    def toggle_answer_vote(self, answer, vote):
+        answer_vote = AnswerVote.query.filter_by(user_id=self.id, answer=answer).first()
+        if answer_vote is None:
+            answer_vote = AnswerVote(user_id=self.id, answer=answer, votes=vote)
+            db.session.add(answer_vote)
+        else:
+            if answer_vote.votes == vote:
+                db.session.delete(answer_vote)
+            else:
+                answer_vote.votes = vote
+        db.session.commit()
+        
     def get_reset_password_token(self, expires_in=600):
         return jwt.encode({"reset_password": self.id,
                            "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in)},
@@ -137,6 +163,7 @@ class User(UserMixin, db.Model):
         return User.query.get(id)
 
 
+
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -150,11 +177,55 @@ class Post(db.Model):
     edited_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     tags = db.relationship('Tag', secondary=post_tags, lazy='dynamic', backref=db.backref('posts', lazy='dynamic'))
+    votes = db.relationship('PostVote', backref='post')
+    answers = db.relationship('Answer', backref='post')
 
+    def total_votes(self):
+        return Post.query.with_entities(func.sum(PostVote.votes)).filter(PostVote.post_id == self.id).scalar() or 0
+    
     def __repr__(self) -> str:
         return f'<Post {self.body}>'
 
+class Answer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    votes = db.relationship('AnswerVote', backref='answer', lazy='dynamic')
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    edited_at = db.Column(db.DateTime, nullable=True)
 
+    def total_votes(self):
+        return Answer.query.with_entities(func.sum(AnswerVote.votes)).filter(AnswerVote.answer_id == self.id).scalar() or 0
+    
+    def edit_answer(self, body, user):
+        if self.author == user:
+            self.body = body
+            self.edited_at = datetime.utcnow()
+            db.session.commit()
+
+class AnswerVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id'), nullable=False)
+    votes = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+    __table_args__ = (
+        db.CheckConstraint('votes=-1 OR votes=0 OR votes=1', name='check_answer_vote_value'),
+    )
+
+class PostVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    votes = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.CheckConstraint('votes=-1 OR votes=0 OR votes=1', name='check_post_vote_value'),
+    )
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
