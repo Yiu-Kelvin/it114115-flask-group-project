@@ -1,0 +1,19 @@
+{% extends "base.html.j2" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>{{post.title}}</h1>
+    <p>{{post.body}}</p>
+    <hr>
+
+    <h2>Answer</h2>
+    {% for answer in post.answers %}
+        <p>{{ answer.body }}</p>
+    
+    {% endfor %}
+
+    {% if form %}
+        {{ wtf.quick_form(form) }}
+        <br/>
+    {% endif %}
+{% endblock %}
