@@ -6,12 +6,15 @@
     <p>{{post.body}}</p>
     <hr>
 
-    <h2>Answer</h2>
-    {% for answer in post.answers %}
-        <p>{{ answer.body }}</p>
-    
-    {% endfor %}
-
+    <h2>Answers: </h2>
+    {% if post.answers %}
+        {% for answer in post.answers %}
+            <p>{{ answer.body }}</p>
+        {% endfor %}
+    {% else %}
+        <p>no answers yet</p>
+    {% endif %}
+    <hr>
     {% if form %}
         {{ wtf.quick_form(form) }}
         <br/>

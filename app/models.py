@@ -185,6 +185,18 @@ class Post(db.Model):
     
     def __repr__(self) -> str:
         return f'<Post {self.body}>'
+    
+    def is_tag_added(self, tag):
+        return self.tags.filter(post_tag.c.tag_id == tag.id).count() > 0
+
+    def remove_tag(self, tag):
+        if self.is_tag_added(tag):
+            self.tags.remove(tag)
+
+    def add_tag(self, tag):
+        if not self.is_tag_added(tag):
+            self.tags.append(tag)
+
 
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

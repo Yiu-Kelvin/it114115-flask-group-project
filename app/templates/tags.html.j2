@@ -1,17 +1,25 @@
 {% extends "base.html.j2" %}
 {% block app_content %}
-    <h1>{{post.title}}</h1>
-    <p>{{post.body}}</p>
+    <h1>{{title}}</h1>
     <hr>
 
-    <h2>Answer</h2>
-    {% for answer in post.answers %}
-        <p>{{ answer.body }}</p>
-    
+    {% for tag in tags %}
+        <p>{{ tag.name }}</p>
+        <p>{{ tag.description }}</p>
+        <hr>
     {% endfor %}
-
-    {% if form %}
-        {{ wtf.quick_form(form) }}
-        <br/>
-    {% endif %}
+    <nav aria-label="...">
+        <ul class="pager">
+            <li class="previous{% if not prev_url %} hidden{% endif %}">
+                <a href="{{ prev_url or '#' }}">
+                    <span aria-hidden="true">&larr;</span>
+                </a>
+            </li>
+            <li class="next{% if not next_url %} hidden{% endif %}">
+                <a href="{{ next_url or '#' }}">
+                <span aria-hidden="true">&rarr;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 {% endblock %}
