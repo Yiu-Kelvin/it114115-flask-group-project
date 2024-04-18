@@ -23,10 +23,19 @@ def before_request():
 def index():
     form = PostForm()
     if form.validate_on_submit():
+        tags = form.tag.data.split()
+
         post = Post(title=form.title.data, body=form.body.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        flash(_('Your post is now live!'))
+        for tag in tags:
+            # effiency???
+            tag_obj = Tag.query.filter_by(name=tag).first()
+            if tag_obj:
+                post.tags.append(tag_obj)
+                db.session.add(post)
+                db.session.commit()
+                flash(_('Your post is now live!'))
+            else:
+                flash(_(f'Tag "{tag}" does not exist'))
         return redirect(url_for('index'))
     page = request.args.get('page', 1, type=int)
     posts = current_user.followed_posts().paginate(
@@ -70,15 +79,15 @@ def explore():
 @login_required
 def tags():
     page = request.args.get('page', 1, type=int)
-    tags = Tag.query.order_by(Tag.created_at.desc()).paginate(
+    tags = Tag.query.paginate(
             page=page, per_page=app.config["TAGS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'tags', page=tags.next_num) if tags.next_num else None
     prev_url = url_for(
         'tags', page=tags.prev_num) if tags.prev_num else None
     
-    return render_template('index.html.j2', title=_('Tags'),
-                           posts=tags.items, next_url=next_url,
+    return render_template('tags.html.j2', title=_('Tags'),
+                           tags=tags.items, next_url=next_url,
                            prev_url=prev_url)
 
 @app.route('/login', methods=['GET', 'POST'])

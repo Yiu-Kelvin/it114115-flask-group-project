@@ -4,7 +4,7 @@
     <hr>
 
     {% for tag in tags %}
-        <p>{{ tag.name }}</p>
+        <a href="{{ url_for('tag', id=tag.id ) }}">{{tag.name}}</a>
         <p>{{ tag.description }}</p>
         <hr>
     {% endfor %}

@@ -2,6 +2,11 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 {% block app_content %}
     <h1>{{ _('Questions tagged with %(tagName)s', tagName=tag.name) }}</h1>
+    <form action="/tag/{{ tag.id }}" method="post">
+        <input class="btn btn-primary btn-lg {% if followed %} disabled{% endif %}" type="submit" name="submit_button" value="Follow">
+        <input class="btn btn-secondary btn-lg {% if ignored %} disabled {% endif %}" type="submit" name="submit_button" value="Ignore">
+    </form>
+    <hr>
     {% for post in posts %}
         {% include "_post.html.j2" %}
     {% endfor %}

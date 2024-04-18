@@ -67,6 +67,7 @@ class EditProfileForm(FlaskForm):
 class PostForm(FlaskForm):
     title = StringField(_l('title'), validators=[DataRequired()])
     body = TextAreaField(_l('body'), validators=[DataRequired()])
+    tag = StringField(_l('tags'), validators=[DataRequired()])
     submit = SubmitField(_l('Submit'))
 
 class AnswerForm(FlaskForm):
