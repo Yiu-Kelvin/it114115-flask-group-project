@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
@@ -6,6 +7,7 @@ from sqlalchemy import and_, func
 from flask_login import UserMixin
 
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 followers = db.Table(
     'followers',
@@ -43,13 +45,13 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(256))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     bookmarked_post = db.relationship('Post', secondary=bookmarked_post, lazy='dynamic', backref=db.backref('bookmarked_by_user', lazy='dynamic'))
     followed_post = db.relationship('Post', secondary=followed_post, lazy='dynamic', backref=db.backref('followed_post', lazy='dynamic'))
     answers = db.relationship('Answer', backref='author', lazy='dynamic')
-    about_me = db.Column(db.String(140))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)    
+    about_me = db.Column(db.Text)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
     followed_tags = db.relationship('Tag', secondary=followed_tags, lazy='dynamic', backref=db.backref('followed_by_user', lazy='dynamic'))
     ignored_tags = db.relationship('Tag', secondary=ignored_tags, lazy='dynamic', backref=db.backref('ingored_by_user', lazy='dynamic'))
 
@@ -61,7 +63,7 @@ class User(UserMixin, db.Model):
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
-    
+
     def post_without_ignored(self):
         return Post.query.filter(~Post.tags.any(Tag.id.in_([tag.id for tag in self.ignored_tags]))).order_by(Post.created_at.desc())
     

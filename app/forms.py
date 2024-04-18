@@ -63,7 +63,14 @@ class EditProfileForm(FlaskForm):
             if user is not None:
                 raise ValidationError(_('Please use a different username.'))
 
+class PostVoteForm(FlaskForm):
+    upvote = SubmitField(_l('upvote'))
+    downvote = SubmitField(_l('downvote'))
 
+class AnswerVoteForm(FlaskForm):
+    upvote = SubmitField(_l('upvote'))
+    downvote = SubmitField(_l('downvote'))
+    
 class PostForm(FlaskForm):
     title = StringField(_l('title'), validators=[DataRequired()])
     body = TextAreaField(_l('body'), validators=[DataRequired()])
