@@ -1,5 +1,5 @@
 {% extends "base.html.j2" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+{# {% import 'bootstrap/wtf.html' as wtf %} #}
 {% block app_content %}
     <h1>{{ _('Questions tagged with %(tagName)s', tagName=tag.name) }}</h1>
     <form action="/tag/{{ tag.id }}" method="post">

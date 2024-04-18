@@ -1,70 +1,76 @@
-{% extends 'bootstrap/base.html' %}
-{% block title %}
+{# {% extends 'bootstrap/base.html' %} #}
+
+<script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/js/bootstrap-modalmanager.min.js" integrity="sha512-/HL24m2nmyI2+ccX+dSHphAHqLw60Oj5sK8jf59VWtFWZi9vx7jzoxbZmcBeeTeCUc7z1mTs3LfyXGuBU32t+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+    a {text-decoration: none;}
+</style>
+
+{# {% block title %}
     {% if title %}
         {{ title }} - StackOverflow
     {% else %}
         {{ _('Welcome to StackOverflow') }}
     {% endif %}
-{% endblock %}
-{% block navbar %}
-    <nav class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button"
-                        class="navbar-toggle collapsed"
-                        data-toggle="collapse"
-                        data-target="#bs-example-navbar-collapse-1"
-                        aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">StackOverflow</a>
-            </div>
+{% endblock %} #}
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-1">
+        <div class="container-fluid">
+              <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="https://stackoverflow.design/assets/img/logos/so/logo-stackoverflow.svg" width="150" height="30">
+              </a>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li>
-                        <a href="{{ url_for('index') }}">{{ _('Home') }}</a>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('index') }}">{{ _('Home') }}</a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('explore') }}">{{ _('Explore') }}</a>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('explore') }}">{{ _('Explore') }}</a>
                     </li>
-                    <li>
-                        <a href="{{ url_for('tags') }}">{{ _('Tags') }}</a>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('tags') }}">{{ _('Tags') }}</a>
                     </li>
                 </ul>
-                <ul class="nav navbar-nav navbar-right">
+                <ul class="nav navbar-nav navbar-right order-3 ms-auto">
                     {% if current_user.is_anonymous %}
-                        <li>
-                            <a href="{{ url_for('login') }}">{{ _('Login') }}</a>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ url_for('login') }}">{{ _('Login') }}</a>
                         </li>
                     {% else %}
-                        <li>
-                            <a href="{{ url_for('user', username=current_user.username) }}">{{ _('Profile') }}</a>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ url_for('user', username=current_user.username) }}">{{ _('Profile') }}</a>
                         </li>
-                        <li>
-                            <a href="{{ url_for('logout') }}">{{ _('Logout') }}</a>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{ url_for('logout') }}">{{ _('Logout') }}</a>
                         </li>
                     {% endif %}
                 </ul>
             </div>
-        </div>
-    </nav>
-{% endblock %}
+          </div>
+      </nav>
 {% block content %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
+    <div class="container-fluid">
+      <div class="d-flex flex-column">
+          {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for message in messages %}<div class="alert alert-info" role="alert">{{ message }}</div>{% endfor %}
+                {% for category, message in messages %}
+                    <div class=" flex-grow-1 d-flex alert {% if category %} alert-{{ category }} {% else %} alert-info {% endif %} alert-dismissible fade show" 
+                    role="alert">
+                      <p class="mb-0 flex-grow-1">{{ message }}</p>
+                       <button class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+                    </div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
         {# application content needs to be provided in the app_content block #}
+      </div>
+
         {% block app_content %}{% endblock %}
     </div>
 {% endblock %}
-{% block scripts %}
-    {{ super() }}
+<script>
     {{ moment.include_moment() }}
     {{ moment.lang(g.locale) }}
-{% endblock %}
+</script>
