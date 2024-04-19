@@ -201,13 +201,13 @@ class Post(db.Model):
 
     def edit_post(self, title, body, tags, user):
         if self.author == user:
-            self.tags.clear()
-            for tag in tags:
-                self.add_tag(tag)
-
+            self.tags = []
+            self.add_tag(tags)
             self.title = title
             self.body = body
+            self.edited_at = datetime.utcnow()
             db.session.commit()
+
 class PostVote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
