@@ -80,11 +80,20 @@ def post_vote(id):
     flash(_('Vote unsuccessful!'), 'danger')
     return redirect(url_for('post', id=post.id))
 
-
-@app.route('/post/<id>', methods=['GET', 'POST'])
+@app.route('/edit_answer/<id>', methods=['POST'])
 @login_required
-def post(id):
-    form = AnswerForm()
+def edit_answer(id):
+    answer = Answer.query.filter_by(id=id).first_or_404()
+    editform = AnswerForm() if current_user == answer.author else None 
+    if editform.validate_on_submit():
+        answer.edit_answer(editform.body.data, current_user)
+        flash(_('Answer edited'), 'success')
+        return redirect(url_for('post', id=answer.post.id))
+
+
+@app.route('/edit_post/<id>', methods=['POST'])
+@login_required
+def edit_post(id):
     post = Post.query.filter_by(id=id).first_or_404()
     editform = PostForm() if current_user == post.author else None 
     if editform.validate_on_submit():
@@ -92,12 +101,20 @@ def post(id):
         post.edit_post(editform.title.data, editform.body.data, tags, current_user)
         flash(_('Post edited'), 'success')
         return redirect(url_for('post', id=post.id))
-    if form.validate_on_submit():
-        answer = Answer(body=form.body.data, author=current_user, post=post)
+
+@app.route('/post/<id>', methods=['GET', 'POST'])
+@login_required
+def post(id):
+    answerform = AnswerForm()
+    post = Post.query.filter_by(id=id).first_or_404()
+    editform = PostForm() if current_user == post.author else None 
+    if answerform.validate_on_submit():
+        answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
         flash(_('answer submitted'), 'success')
-    return render_template('post_content.html.j2', post=post, form=form, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
+    return render_template('post_content.html.j2', post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
+
 
 
 @app.route('/explore')
@@ -241,7 +258,7 @@ def reset_password(token):
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    posts = user.followed_posts().paginate(
+    posts = user.posts_from_followed_user().paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'index', page=posts.next_num) if posts.next_num else None

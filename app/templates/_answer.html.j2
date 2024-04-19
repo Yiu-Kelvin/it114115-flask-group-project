@@ -1,22 +1,4 @@
 <table class="table table-hover">
-    {# <form action=""></form>
-    <tr>
-        <td width="70px">
-            <a href="{{ url_for('user', username=answer.author.username) }}">
-                <img src="{{ answer.author.avatar(70) }}"/>
-            </a>
-        </td>
-        <td>
-            {% set user_link %}
-            <a href="{{ url_for('user', username=answer.author.username) }}">{{ answer.author.username }}</a>
-        {% endset %}
-        {{ _('%(username)s answered %(when)s',
-        username=user_link, when=moment(answer.created_at).fromNow()) }}
-        <br/>
-        
-
-    </td>
-    </tr> #}
     <div class="card">
     
         <div class="d-flex ">
@@ -28,9 +10,40 @@
                 <div><button class="bi bi-caret-up btn btn-primary  p-3 rounded-circle icon-flipped" name="downvote" value="downvote"></button></div>
             </form>
         </div>
+
+
         <div class="d-flex flex-column  card-body">
             {{ answer.body }}
         </div>
+        {# create a modal #}
+        {% if answerform and current_user.id == answer.author.id %}
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editAnswerModal"> 
+        edit </button>
+        <div class="modal fade" id="editAnswerModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">Edit Answer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{{ url_for('edit_answer', id=answer.id) }}">
+                            {{ answerform.csrf_token }}
+                            <div class="mb-3">
+                                <label for="body" class="form-label">Body</label>
+                                {# had to do this to show default value #}
+                                <textarea class="form-control" id="body" name="body">{{ answer.body }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                            </div>
+                            {{ answerform.submit(class="btn btn-primary", value="Save Changes") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
     </div>
     </div>
 

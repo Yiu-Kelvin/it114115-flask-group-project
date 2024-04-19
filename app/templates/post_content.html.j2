@@ -16,6 +16,52 @@
             <h1>{{post.title}}</h1>
             <p>{{post.body}}</p>
         </div>
+
+
+        {# create a modal #}
+        {% if editform %}
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editModal"> 
+        edit </button>
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">Edit Post</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{{ url_for('edit_post', id=post.id) }}">
+                            {{ editform.csrf_token }}
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                {{ editform.title(class="form-control", value=post.title) }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="body" class="form-label">Body</label>
+                                {# had to do this to show default value #}
+                                <textarea class="form-control" id="body" name="body">{{ post.body }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                            {% set taglist = [] %}
+                            
+                            {% for tag in post.tags %}
+                                {# surpress printing 'none' on website #}
+                                {% set _ = taglist.append(tag.name) %}
+                            {% endfor %}
+                            {% set tagstring = ' '.join(taglist) %}
+
+                                <label for="tags" class="form-label">Tags</label>
+                                {{ editform.tag(class="form-control", value=tagstring) }}
+                            </div>
+                            {{ editform.submit(class="btn btn-primary", value="Save Changes") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
     </div>
 
     <hr>
@@ -32,17 +78,16 @@
         <hr>
         <h2>Be the first to answer</h2>
     {% endif %}
-    {% if form %}
+    {% if answerform %}
 
         <form action="/post/{{post.id}}" method="post">
-            {{ form.csrf_token }}
+            {{ answerform.csrf_token }}
             <div class="form-group">
                 <label>Answer</label>
-
-                {{ form.body(class_='form-control')  }}
+                {{ answerform.body(class_='form-control')  }}
             </div>
             <div class="form-group ">
-                {{ form.submit(class_='btn btn-primary mt-2') }}
+                {{ answerform.submit(class_='btn btn-primary mt-2') }}
             </div>
         </form>
         <br/>   
