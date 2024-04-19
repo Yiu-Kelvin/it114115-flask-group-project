@@ -1,5 +1,5 @@
 <table class="table table-hover">
-    <form action=""></form>
+    {# <form action=""></form>
     <tr>
         <td width="70px">
             <a href="{{ url_for('user', username=answer.author.username) }}">
@@ -13,8 +13,25 @@
         {{ _('%(username)s answered %(when)s',
         username=user_link, when=moment(answer.created_at).fromNow()) }}
         <br/>
-        <h3>{{ answer.title }}</h3>
-        {{ answer.body }}
+        
+
     </td>
-</tr>
+    </tr> #}
+    <div class="card">
+    
+        <div class="d-flex ">
+        <div class="d-flex flex-column text-center">
+            <form action="/answer_vote/{{ answer.id }}" method="post">
+                {{ voteform.csrf_token }}
+                <div><button class="bi bi-caret-up btn btn-primary mb-3 p-3 rounded-circle" name="upvote" value="upvote"></button></div>
+                <p>{{ answer.total_votes() }}</p>
+                <div><button class="bi bi-caret-up btn btn-primary  p-3 rounded-circle icon-flipped" name="downvote" value="downvote"></button></div>
+            </form>
+        </div>
+        <div class="d-flex flex-column  card-body">
+            {{ answer.body }}
+        </div>
+    </div>
+    </div>
+
 </table>

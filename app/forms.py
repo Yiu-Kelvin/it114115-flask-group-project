@@ -5,7 +5,7 @@ from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, \
     Length
 from flask_babel import _, lazy_gettext as _l
 from app.models import User
-
+from markupsafe import Markup
 
 class LoginForm(FlaskForm):
     username = StringField(_l('Username'), validators=[DataRequired()])
@@ -64,8 +64,8 @@ class EditProfileForm(FlaskForm):
                 raise ValidationError(_('Please use a different username.'))
 
 class PostVoteForm(FlaskForm):
-    upvote = SubmitField(_l('upvote'))
-    downvote = SubmitField(_l('downvote'))
+    upvote = SubmitField()
+    downvote = SubmitField()
 
 class AnswerVoteForm(FlaskForm):
     upvote = SubmitField(_l('upvote'))

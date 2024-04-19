@@ -52,8 +52,21 @@ def index():
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url,pagination=posts)
 
+@app.route('/answer_vote/<id>', methods=['POST'])
+@login_required
+def answer_vote(id):
+    form = AnswerVoteForm()
+    if form.validate_on_submit():
+        answer = Answer.query.filter_by(id=id).first_or_404()
+        vote = 1 if form.upvote.data else -1
+        current_user.toggle_answer_vote(answer, vote)
+        db.session.commit()
+        flash(_('Vote successful!'), 'success')
+        return redirect(url_for('post', id=answer.post.id))
+    flash(_('Vote unsuccessful!'), 'danger')
+    return redirect(url_for('post', id=answer.post.id))
 
-@app.route('/post_vote/<id>', methods=['GET', 'POST'])
+@app.route('/post_vote/<id>', methods=['POST'])
 @login_required
 def post_vote(id):
     form = PostVoteForm()
@@ -73,18 +86,25 @@ def post_vote(id):
 def post(id):
     form = AnswerForm()
     post = Post.query.filter_by(id=id).first_or_404()
+    editform = PostForm() if current_user == post.author else None 
+    if editform.validate_on_submit():
+        tags = editform.tag.data.split()
+        post.edit_post(editform.title.data, editform.body.data, tags, current_user)
+        flash(_('Post edited'), 'success')
+        return redirect(url_for('post', id=post.id))
     if form.validate_on_submit():
         answer = Answer(body=form.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
         flash(_('answer submitted'), 'success')
-        return render_template('post_content.html.j2', post=post, form=form)
-    return render_template('post_content.html.j2', post=post, form=form, voteform = PostVoteForm(),votes=post.total_votes())
+    return render_template('post_content.html.j2', post=post, form=form, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
+
+
 @app.route('/explore')
 @login_required
 def explore():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.created_at.desc()).paginate(
+    posts = current_user.post_without_ignored().paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'explore', page=posts.next_num) if posts.next_num else None

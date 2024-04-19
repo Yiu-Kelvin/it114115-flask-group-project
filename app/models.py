@@ -199,6 +199,26 @@ class Post(db.Model):
         if not self.is_tag_added(tag):
             self.tags.append(tag)
 
+    def edit_post(self, title, body, tags, user):
+        if self.author == user:
+            self.tags.clear()
+            for tag in tags:
+                self.add_tag(tag)
+
+            self.title = title
+            self.body = body
+            db.session.commit()
+class PostVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    votes = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.CheckConstraint('votes=-1 OR votes=0 OR votes=1', name='check_post_vote_value'),
+    )
+
 
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
