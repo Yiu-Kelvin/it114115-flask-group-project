@@ -2,7 +2,7 @@
 $(document).ready(function() {
     $('.preview-text').each(function(){
         var text = $(this).text();
-        console.log(text); // Use console.log instead of print
+        console.log(text);
         if(text.length > 500){
 
             $(this).text(text.substring(0, 500) + '...');
@@ -13,7 +13,7 @@ $(document).ready(function() {
 </script>
 
 <div class="d-flex p-2 flex-row border">
-  <div class="d-flex flex-column text-end" style="min-width:79px;">
+  <div class="d-flex flex-column text-end" style="min-width:90px;">
     <p>votes: {{ post.total_votes() }}</p>
     <p>answers: {{ post.answers | length }}</p>
     <p>views: 0</p>
@@ -30,7 +30,7 @@ $(document).ready(function() {
         {% endfor %}
     <div class="text-end flex-fill">
                 
-        <img src="https://www.gravatar.com/avatar/8e3fa2a771d1aadb87850daf5f0d921d?d=identicon&s=70" alt=""  width="16" height="16">
+        <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
         
             <a href="/user/{{ post.author.id }}">{{ post.author.username }}</a>
          {{ _('asked %(when)s',
