@@ -1,4 +1,6 @@
 {% extends "base.html.j2" %}
+{% from "macros/pagination.html.j2" import show_pagination with context %}
+
 {% block app_content %}
     <h1>{{title}}</h1>
     <hr>
@@ -8,18 +10,5 @@
         <p>{{ tag.description }}</p>
         <hr>
     {% endfor %}
-    <nav aria-label="...">
-        <ul class="pager">
-            <li class="previous{% if not prev_url %} hidden{% endif %}">
-                <a href="{{ prev_url or '#' }}">
-                    <span aria-hidden="true">&larr;</span>
-                </a>
-            </li>
-            <li class="next{% if not next_url %} hidden{% endif %}">
-                <a href="{{ next_url or '#' }}">
-                <span aria-hidden="true">&rarr;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+    {{ show_pagination(pagination) }}
 {% endblock %}
