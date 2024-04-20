@@ -8,7 +8,7 @@
                 <i class="bi bi-caret-up-fill"></i>
                 </button>
             </div>
-            <p>{{ answer.total_votes() }}</p>
+            <p>{{ answer.total_votes }}</p>
             <div class=" "><button class="btn btn-outline-secondary  p-3 rounded-circle" name="downvote" value="downvote">
                 <i class="bi-caret-down-fill"></i>
                 </button>
@@ -21,9 +21,15 @@
         <p>{{ answer.body }}</p>
         <div class="d-flex flex-fill overflow-hidden justify-content-end">
             <div class="text-end">
-                <img src="{{ answer.author.avatar(70) }}" alt=""  width="16" height="16">
+               <img src="{{ answer.author.avatar(70) }}" alt=""  width="16" height="16">
                <a href="/user/{{ answer.author.id }}">{{ answer.author.username }}</a>
                answered {{ moment(answer.created_at).fromNow() }}
+                {% if answer.edited_at %}
+                
+                <p>edited {{ moment(answer.edited_at).fromNow() }}</p>
+                
+
+                {% endif %}
                 {% if answerform and current_user.id == answer.author.id %}
                 {# TODO: make the tooltip work #}
                     <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="edit">

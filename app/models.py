@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
 import jwt
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, select
 from flask_login import UserMixin
-
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -195,9 +195,9 @@ class Post(db.Model):
         if self.is_tag_added(tag):
             self.tags.remove(tag)
 
-    def add_tag(self, tag):
-        if not self.is_tag_added(tag):
-            self.tags.append(tag)
+            
+    def total_votes(self):
+        return Post.query.with_entities(func.sum(PostVote.votes)).filter(PostVote.post_id == self.id).scalar() or 0
 
     def edit_post(self, title, body, tags, user):
         if self.author == user:
@@ -229,8 +229,21 @@ class Answer(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     edited_at = db.Column(db.DateTime, nullable=True)
 
+    @hybrid_property            
     def total_votes(self):
-        return Answer.query.with_entities(func.sum(AnswerVote.votes)).filter(AnswerVote.answer_id == self.id).scalar() or 0
+        return self.votes.with_entities(func.sum(AnswerVote.votes)).scalar() or 0
+
+    @total_votes.expression
+    def total_votes(cls):
+        return (
+            select(func.sum(AnswerVote.votes))
+            # impacts performance, but oh well
+            .where(AnswerVote.answer_id == cls.id)
+            .label("total_votes")
+        )
+
+    # def total_votes(self):
+    #     return Answer.query.with_entities(func.sum(AnswerVote.votes)).filter(AnswerVote.answer_id == self.id).scalar() or 0
     
     def edit_answer(self, body, user):
         if self.author == user:

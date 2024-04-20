@@ -64,8 +64,8 @@ class EditProfileForm(FlaskForm):
                 raise ValidationError(_('Please use a different username.'))
 
 class PostVoteForm(FlaskForm):
-    upvote = SubmitField()
-    downvote = SubmitField()
+    upvote = SubmitField(_l('upvote'))
+    downvote = SubmitField(_l('downvote'))
 
 class AnswerVoteForm(FlaskForm):
     upvote = SubmitField(_l('upvote'))

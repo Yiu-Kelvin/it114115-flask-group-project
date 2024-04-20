@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import *
+from sqlalchemy import func, select
 from app.models import *
 from app.email import send_password_reset_email
-
+from sqlalchemy.sql.functions import coalesce
 
 @app.before_request
 def before_request():
@@ -56,8 +57,8 @@ def index():
 @login_required
 def answer_vote(id):
     form = AnswerVoteForm()
+    answer = Answer.query.filter_by(id=id).first_or_404()
     if form.validate_on_submit():
-        answer = Answer.query.filter_by(id=id).first_or_404()
         vote = 1 if form.upvote.data else -1
         current_user.toggle_answer_vote(answer, vote)
         db.session.commit()
@@ -70,8 +71,8 @@ def answer_vote(id):
 @login_required
 def post_vote(id):
     form = PostVoteForm()
+    post = Post.query.filter_by(id=id).first_or_404()
     if form.validate_on_submit():
-        post = Post.query.filter_by(id=id).first_or_404()
         vote = 1 if form.upvote.data else -1
         current_user.toggle_post_vote(post, vote)
         db.session.commit()
@@ -102,18 +103,49 @@ def edit_post(id):
         flash(_('Post edited'), 'success')
         return redirect(url_for('post', id=post.id))
 
+@app.route('/bookmark_post/<id>', methods=['GET', 'POST'])
+@login_required
+def bookmark_post(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    current_user.toggle_post_bookmark(post)
+    db.session.commit()
+    flash(_('Post bookmarked'), 'success')
+    return redirect(url_for('post', id=post.id))
+
+@app.route('/follow_post/<id>', methods=['GET', 'POST'])
+@login_required
+def follow_post(id):
+    post = Post.query.filter_by(id=id).first_or_404()
+    current_user.toggle_post_follow(post)
+    db.session.commit()
+    flash(_('Post followed'), 'success')
+    return redirect(url_for('post', id=post.id))
+
+
 @app.route('/post/<id>', methods=['GET', 'POST'])
 @login_required
 def post(id):
+    sort_by = request.args.get('sort_by')
     answerform = AnswerForm()
     post = Post.query.filter_by(id=id).first_or_404()
+
+    # needed a separate query for answers, in order to implement sorting
+    if sort_by == "created":
+        answers = Answer.query.join(Post).order_by(Answer.created_at.desc()).filter(Post.id == id).all()
+    elif sort_by == "edited":
+        answers = Answer.query.join(Post).order_by(coalesce(Answer.edited_at, Answer.created_at).desc()).filter(Post.id == id).all()
+    else:
+        answers = Answer.query.join(Post).order_by(coalesce(Answer.total_votes, 0).desc()).filter(Post.id == id).all()
+
     editform = PostForm() if current_user == post.author else None 
     if answerform.validate_on_submit():
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
         flash(_('answer submitted'), 'success')
-    return render_template('post_content.html.j2', post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
+
+    
+    return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
 
 
 
@@ -153,13 +185,8 @@ def tag(id):
     elif request.method == 'GET':
         posts = tag.posts_with_tag().paginate(
             page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-        next_url = url_for(
-            'tag',id=tag.id ,page=posts.next_num) if posts.next_num else None
-        prev_url = url_for(
-            'tag',id=tag.id , page=posts.prev_num) if posts.prev_num else None
         
-        return render_template('posts_with_tag.html.j2', tag=tag, posts=posts, next_url=next_url,
-                            prev_url=prev_url, followed=current_user.is_following_tag(tag), 
+        return render_template('posts_with_tag.html.j2', tag=tag, posts=posts, followed=current_user.is_following_tag(tag), 
                             ignored=current_user.is_ignoring_tag(tag))
 
 
@@ -169,14 +196,9 @@ def tags():
     page = request.args.get('page', 1, type=int)
     tags = Tag.query.paginate(
             page=page, per_page=app.config["TAGS_PER_PAGE"], error_out=False)
-    next_url = url_for(
-        'tags', page=tags.next_num) if tags.next_num else None
-    prev_url = url_for(
-        'tags', page=tags.prev_num) if tags.prev_num else None
     
     return render_template('tags.html.j2', title=_('Tags'),
-                           tags=tags.items, next_url=next_url,
-                           prev_url=prev_url)
+                           tags=tags.items, pagination=tags)
 
 
 @app.route('/login', methods=['GET', 'POST'])
