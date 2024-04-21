@@ -23,10 +23,11 @@ def before_request():
 @login_required
 def index():
     form = PostForm()
+    sort_by = request.args.get('sort_by')
     if form.validate_on_submit():
         # todo: refactor this to form validation
-        tags = form.tag.data.split()
 
+        tags = form.tag.data.split()
         post = Post(title=form.title.data, body=form.body.data, author=current_user)
         for tag in tags:
             # effiency???
@@ -42,16 +43,18 @@ def index():
         flash(_('Your post is now live!'), 'success')
         return redirect(url_for('index'))
     page = request.args.get('page', 1, type=int)
-    posts = current_user.posts_from_followed_user().paginate(
+
+    
+    posts = current_user.posts_from_followed_user(sort_by=sort_by).paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'index', page=posts.next_num) if posts.next_num else None
     prev_url = url_for(
         'index', page=posts.prev_num) if posts.prev_num else None
-    
+
     return render_template('index.html.j2', title=_('Home'), form=form,
                            posts=posts.items, next_url=next_url,
-                           prev_url=prev_url,pagination=posts)
+                           prev_url=prev_url, pagination=posts, current_page=page)
 
 @app.route('/answer_vote/<id>', methods=['POST'])
 @login_required
@@ -145,15 +148,16 @@ def post(id):
         flash(_('answer submitted'), 'success')
 
     
-    return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes(),editform=editform)
+    return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
 
 
 
 @app.route('/explore')
 @login_required
 def explore():
+    sort_by = request.args.get('sort_by')
     page = request.args.get('page', 1, type=int)
-    posts = current_user.post_without_ignored().paginate(
+    posts = current_user.post_without_ignored(sort_by=sort_by).paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
     next_url = url_for(
         'explore', page=posts.next_num) if posts.next_num else None
@@ -169,7 +173,7 @@ def explore():
 def tag(id):
     page = request.args.get('page', 1, type=int)
     tag = Tag.query.filter_by(id=id).first_or_404()
-
+    sort_by = request.args.get('sort_by')
     if request.method == 'POST':
         if request.form['submit_button'] == 'Follow':
             current_user.toggle_follow_tag(tag)
@@ -183,7 +187,7 @@ def tag(id):
             return redirect(url_for('tag',id=tag.id))
         
     elif request.method == 'GET':
-        posts = tag.posts_with_tag().paginate(
+        posts = tag.posts_with_tag(sort_by=sort_by).paginate(
             page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
         
         return render_template('posts_with_tag.html.j2', tag=tag, posts=posts, followed=current_user.is_following_tag(tag), 

@@ -27,6 +27,29 @@
             <br/>   
     {% endif %}
 
+    <div class="d-flex justify-content-between p-2">
+    <div class="dropdown ">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort by: 
+        {% if request.args.get("sort_by") == "created" %}
+            Date Created (newest)
+        {% elif request.args.get("sort_by") == "edited" %}
+            Date Edited (newest)
+        {% elif request.args.get("sort_by") == "answers" %}
+            Answers (highest)
+        {% else %}
+            Votes (highest)
+        {% endif %}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, page=page) }}">Votes (highest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, sort_by='created', page=page) }}">Date Created (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, sort_by='edited', page=page) }}">Date Modified (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, sort_by='answers', page=page) }}">Answers (highest)</a></li>
+        </ul>
+    </div>
+    </div>
+
     {% for post in posts %}
         {% include "_post.html.j2" %}
     {% endfor %}
