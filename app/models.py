@@ -274,6 +274,9 @@ class Post(db.Model):
             self.edited_at = datetime.utcnow()
             db.session.commit()
 
+    def accept_answer(self, answer):
+        
+        answer.accepted = not answer.accepted
 
 
 
@@ -284,6 +287,7 @@ class Answer(db.Model):
     body = db.Column(db.Text, nullable=False)
     votes = db.relationship('AnswerVote', backref='answer', lazy='dynamic')
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    accepted = db.Column(db.Boolean, default=False)
     edited_at = db.Column(db.DateTime, nullable=True)
 
     @hybrid_property            

@@ -9,6 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 from app.models import Answer, User, Post, Tag
+
 # revision identifiers, used by Alembic.
 revision = '484bcdefdbe9'
 down_revision = '06f5fe8dd988'
@@ -84,5 +85,9 @@ def seed():
                     'description':"For questions about programming in ECMAScript (JavaScript/JS) and its different dialects/implementations (except for ActionScript). Note that JavaScript is NOT Java."},
             {'name':'c#',
                     'description': "C#  is a high-level, statically typed, multi-paradigm programming language developed by Microsoft. C# code usually targets Microsofts .NET family of tools and"},
+            {'name':'haskell',
+                    'description': "Haskell is a purely functional programming language featuring strong static typing, lazy evaluation, extensive parallelism and concurrency support, and unique abstraction capabilities. "},
+            {'name':'functional-programming',
+                    'description': "Functional programming is a programming paradigm based upon building abstractions using functions, isolating side effects and mutable state. Executing pure functions is thread-safe."},
         ]
     )

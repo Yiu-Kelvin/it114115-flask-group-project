@@ -16,6 +16,25 @@
             {# TODO: mark as solution  #}
             {# <a href="your link here"> <i class="bi bi-check-circle-fill h1 text-success"></i></a> #}
         </form>
+        {% if current_user == answer.post.author %}
+            {% if not answer.accepted %}
+                <a href="{{ url_for('accept_answer', id=answer.id) }}" class="link-secondary">
+                <i class="bi bi-check-circle fs-4"></i>
+                </a>        
+            {% endif %}
+        {% endif %}
+        {% if answer.accepted %}
+            {% if current_user == answer.post.author %}
+                <a href="{{ url_for('accept_answer', id=answer.id) }}" class="link-success">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+                </a>     
+            {% else %}
+                <a class="link-success">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+                </a>     
+            {% endif %}
+
+        {% endif %}
     </div>
     <div class="d-flex flex-column flex-grow-1 ">
         <p>{{ answer.body }}</p>

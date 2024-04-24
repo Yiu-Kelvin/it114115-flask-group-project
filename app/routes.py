@@ -151,6 +151,18 @@ def post(id):
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
 
 
+@app.route('/accpet_answer/<id>', methods=['GET', 'POST'])
+@login_required
+def accept_answer(id):
+
+    answer = Answer.query.filter_by(id=id).first_or_404()
+    post = answer.post
+    if current_user == post.author:
+        post.accept_answer(answer)
+        db.session.commit()
+        flash(_('Answer accepted'), 'success')
+    print(answer.accepted)
+    return redirect(url_for('post', id=post.id))
 
 @app.route('/explore')
 @login_required
