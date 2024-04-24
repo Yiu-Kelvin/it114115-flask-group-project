@@ -13,11 +13,11 @@ class Config(object):
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or "mailhog"
-    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 1025)
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = "projectstackoverflow@gmail.com"
+    MAIL_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
     ADMINS = ['flask@pikaamail.com']
     POSTS_PER_PAGE = 3
     TAGS_PER_PAGE = 36

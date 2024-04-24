@@ -7,7 +7,7 @@ from app import app, db
 from app.forms import *
 from sqlalchemy import func, select
 from app.models import *
-from app.email import send_password_reset_email
+from app.email import send_password_reset_email, send_answered_notification
 from sqlalchemy.sql.functions import coalesce
 
 @app.before_request
@@ -139,13 +139,16 @@ def post(id):
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
+        users = post.followed_by_user.all()
+        print(users)
+        send_answered_notification(users,post.author, post.id)
         flash(_('answer submitted'), 'success')
 
     
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
 
 
-@app.route('/accpet_answer/<id>', methods=['GET', 'POST'])
+@app.route('/accept_answer/<id>', methods=['GET', 'POST'])
 @login_required
 def accept_answer(id):
     answer = Answer.query.filter_by(id=id).first_or_404()
