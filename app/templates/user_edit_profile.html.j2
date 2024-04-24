@@ -1,0 +1,40 @@
+{% extends "_user.html.j2" %}
+{% block profile_content %}
+    <div class="d-flex justify-content-between">
+        <ul class="nav nav-pills nav-fill">
+    <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="{{ url_for('user', username=user.username) }}">Posts</a>
+        </li>
+
+        {% if current_user == user %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('user_bookmarked', username=user.username) }}">Bookmarked</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('edit_profile', username=user.username)}}">Edit Profile</a>
+            </li>
+
+            </ul>
+        {% endif %}
+    </div>
+    <h1>{{ _('Edit Profile') }}</h1>
+    <form action="{{ url_for('edit_profile', username=user.username) }}" method="post">
+        {% if form %}
+            {{ form.csrf_token }}
+            <div class="form-group">
+                <label>Username</label>
+                {{ form.username(class_='form-control') }}
+            </div>
+            <div class="form-group">
+                <label>about_me</label>
+
+                {{ form.about_me(class_='form-control')  }}
+            </div>
+
+            <div class="form-group ">
+            {{ form.submit(class_='btn btn-primary mt-2') }}
+            </div>
+        {% endif %}
+    </form>
+{% endblock %}

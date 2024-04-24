@@ -31,5 +31,5 @@
     {% for post in posts %}
         {% include "_post.html.j2" %}
     {% endfor %}
-    {{ show_pagination(posts, tag.id) }}
+    {{ show_pagination(posts, {"id" : tag.id}) }}
 {% endblock app_content %}

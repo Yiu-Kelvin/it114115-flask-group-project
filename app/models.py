@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
 import jwt
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select,update
 from flask_login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -177,6 +177,53 @@ class User(UserMixin, db.Model):
             posts = followed.union(own).order_by(coalesce(Post.total_answers, 0).desc())
         else:
             posts = followed.union(own).order_by(coalesce(Post.total_votes, 0).desc())
+        return posts
+    
+    def bookmarked_posts(self, sort_by=None):
+        if sort_by == "created":
+            self.bookmarked_post.order_by(Post.created_at.desc())
+        elif sort_by == "edited":
+            self.bookmarked_post.order_by(coalesce(Post.edited_at, Post.created_at).desc())
+        elif sort_by == "answers":
+            self.bookmarked_post.order_by(coalesce(Post.total_answers, 0).desc())
+        else:
+            self.bookmarked_post.order_by(coalesce(Post.total_votes, 0).desc())
+        return self.bookmarked_post
+
+    def followed_tags_posts(self, sort_by=None):
+        followed_tags = Tag.query.join(
+            followed_tags, followed_tags.c.tag_id == Tag.id
+        ).filter(followed_tags.c.user_id == self.id)
+
+        ignored_tags = Tag.query.join(
+            ignored_tags, ignored_tags.c.tag_id == Tag.id
+        ).filter(ignored_tags.c.user_id == self.id)
+
+        posts = Post.query.join(
+            post_tags, post_tags.c.post_id == Post.id
+        ).join(
+            followed_tags, followed_tags.c.tag_id == post_tags.c.tag_id
+        ).filter(~Post.tags.any(Tag.id.in_([tag.id for tag in ignored_tags])))
+
+        if sort_by == "created":
+            posts = posts.order_by(Post.created_at.desc())
+        elif sort_by == "edited":
+            posts = posts.order_by(coalesce(Post.edited_at, Post.created_at).desc())
+        elif sort_by == "answers":
+            posts = posts.order_by(coalesce(Post.total_answers, 0).desc())
+        else:
+            posts = posts.order_by(coalesce(Post.total_votes, 0).desc())
+        return posts
+
+    def post_by_user(self, sort_by=None):
+        if sort_by == "created":
+            posts = Post.query.filter_by(user_id=self.id).order_by(Post.created_at.desc())
+        elif sort_by == "edited":
+            posts = Post.query.filter_by(user_id=self.id).order_by(coalesce(Post.edited_at, Post.created_at).desc())
+        elif sort_by == "answers":
+            posts = Post.query.filter_by(user_id=self.id).order_by(coalesce(Post.total_answers, 0).desc())
+        else:
+            posts = Post.query.filter_by(user_id=self.id).order_by(coalesce(Post.total_votes, 0).desc())
         return posts
 
     def is_following_tag(self, tag):

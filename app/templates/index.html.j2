@@ -48,11 +48,11 @@
             <li><a class="dropdown-item" href="{{ url_for(request.endpoint, sort_by='answers', page=page) }}">Answers (highest)</a></li>
         </ul>
     </div>
-    </div>
+</div>
 
     {% for post in posts %}
         {% include "_post.html.j2" %}
     {% endfor %}
     
-    {{ show_pagination(pagination) }}
+{{ show_pagination(pagination) }}
 {% endblock %}
