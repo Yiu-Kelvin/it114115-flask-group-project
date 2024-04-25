@@ -1,0 +1,55 @@
+
+{% extends "_user.html.j2" %}
+{% from "macros/pagination.html.j2" import show_pagination with context %}
+{% block profile_content %}
+    <div class="d-flex justify-content-between">
+        <ul class="nav nav-pills nav-fill">
+    <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Posts</a>
+        </li>
+
+        {% if current_user == user %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('user_bookmarked', username=user.username) }}">Bookmarked</a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('edit_profile', username=user.username)}}">Edit Profile</a>
+            </li>
+
+            </ul>
+        {% endif %}
+    </div>
+
+{# posts #}
+
+    <div class="d-flex justify-content-between p-2">
+    <div class="dropdown ">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort by: 
+        {% if request.args.get("sort_by") == "created" %}
+            Date Created (newest)
+        {% elif request.args.get("sort_by") == "edited" %}
+            Date Edited (newest)
+        {% elif request.args.get("sort_by") == "answers" %}
+            Answers (highest)
+        {% else %}
+            Votes (highest)
+        {% endif %}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, username=user.username, page=page) }}">Votes (highest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, username=user.username, sort_by='created', page=page) }}">Date Created (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, username=user.username, sort_by='edited', page=page) }}">Date Modified (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, username=user.username, sort_by='answers', page=page) }}">Answers (highest)</a></li>
+        </ul>
+    </div>
+</div>
+
+{% for post in posts %}
+    {% include "_post.html.j2" %}
+{% endfor %}
+
+{{ show_pagination(pagination, {"username" : user.username}) }}
+
+{% endblock %}

@@ -8,7 +8,7 @@ from app import app, db
 from app.forms import *
 from sqlalchemy import func, select
 from app.models import *
-from app.email import send_password_reset_email
+from app.email import send_password_reset_email, send_answered_notification
 from sqlalchemy.sql.functions import coalesce
 
 @app.before_request
@@ -43,19 +43,13 @@ def index():
         db.session.commit()
         flash(_('Your post is now live!'), 'success')
         return redirect(url_for('index'))
-    page = request.args.get('page', 1, type=int)
-
     
+    page = request.args.get('page', 1, type=int)
     posts = current_user.posts_from_followed_user(sort_by=sort_by).paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-    next_url = url_for(
-        'index', page=posts.next_num) if posts.next_num else None
-    prev_url = url_for(
-        'index', page=posts.prev_num) if posts.prev_num else None
 
     return render_template('index.html.j2', title=_('Home'), form=form,
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url, pagination=posts, current_page=page)
+                           posts=posts.items, pagination=posts)
 
 @app.route('/answer_vote/<id>', methods=['POST'])
 @login_required
@@ -155,16 +149,18 @@ def post(id):
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
+        users = post.followed_by_user.all()
+        print(users)
+        send_answered_notification(users,post.author, post.id)
         flash(_('answer submitted'), 'success')
 
     
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
 
 
-@app.route('/accpet_answer/<id>', methods=['GET', 'POST'])
+@app.route('/accept_answer/<id>', methods=['GET', 'POST'])
 @login_required
 def accept_answer(id):
-
     answer = Answer.query.filter_by(id=id).first_or_404()
     post = answer.post
     if current_user == post.author:
@@ -304,29 +300,48 @@ def reset_password(token):
 @app.route('/user/<username>')
 @login_required
 def user(username):
+    sort_by = request.args.get('sort_by')
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    posts = user.posts_from_followed_user().paginate(
+    posts = user.post_by_user(sort_by=sort_by).paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-    return render_template('user.html.j2', user=user, posts=posts.items,
-    pagination=posts)
+
+    return render_template('user_posts.html.j2', user=user, posts=posts.items,
+                            pagination=posts)
+
+@app.route('/user/bookmarked/<username>')
+def user_bookmarked(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    if current_user == user:
+        page = request.args.get('page', 1, type=int)
+        posts = user.bookmarked_posts().paginate(
+        page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
+        return render_template('user_bookmarked.html.j2', user=user, posts=posts.items,
+                            pagination=posts)
+    else:
+        flash(_('You cannot view this page'), 'danger')
+        return redirect(url_for('index'))
 
 
-@app.route('/edit_profile', methods=['GET', 'POST'])
+@app.route('/user/edit_profile/<username>', methods=['GET', 'POST'])
 @login_required
-def edit_profile():
+def edit_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    if user != current_user:
+        flash(_('You cannot edit this profile'), 'danger')
+        return redirect(url_for('index'))
     form = EditProfileForm(current_user.username)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
         db.session.commit()
         flash(_('Your changes have been saved.'), 'success')
-        return redirect(url_for('edit_profile'))
+        return redirect(url_for('edit_profile', username=current_user.username))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html.j2', title=_('Edit Profile'),
-                           form=form)
+    return render_template('user_edit_profile.html.j2', title=_('Edit Profile'),
+                           form=form, user=user)
 
 
 @app.route('/follow/<username>')
