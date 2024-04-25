@@ -1,5 +1,6 @@
+from crypt import methods
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request, g
+from flask import render_template, flash, redirect, url_for, request, g,session
 from flask_login import login_user, logout_user, current_user, login_required
 from urllib.parse import urlparse
 from flask_babel import _, get_locale
@@ -88,11 +89,20 @@ def post_vote(id):
 @login_required
 def edit_answer(id):
     answer = Answer.query.filter_by(id=id).first_or_404()
-    editform = AnswerForm() if current_user == answer.author else None 
-    if editform.validate_on_submit():
-        answer.edit_answer(editform.body.data, current_user)
-        flash(_('Answer edited'), 'success')
-        return redirect(url_for('post', id=answer.post.id))
+    post_id = answer.post.id
+    if current_user == answer.author:
+        editform = AnswerForm()
+        if editform.validate_on_submit():
+            if editform.delete.data:
+                print('delete')
+                Answer.query.filter_by(id=id).delete()
+                db.session.commit()
+                flash(_('Answer deleted'), 'success')
+                return redirect(url_for('post', id=post_id))
+            answer.edit_answer(editform.body.data, current_user)
+            flash(_('Answer edited'), 'success')
+            return redirect(url_for('post', id=post_id))
+
 
 
 @app.route('/edit_post/<id>', methods=['POST'])
@@ -298,12 +308,8 @@ def user(username):
     page = request.args.get('page', 1, type=int)
     posts = user.posts_from_followed_user().paginate(
         page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-    next_url = url_for(
-        'index', page=posts.next_num) if posts.next_num else None
-    prev_url = url_for(
-        'index', page=posts.prev_num) if posts.prev_num else None
     return render_template('user.html.j2', user=user, posts=posts.items,
-                           next_url=next_url, prev_url=prev_url)
+    pagination=posts)
 
 
 @app.route('/edit_profile', methods=['GET', 'POST'])

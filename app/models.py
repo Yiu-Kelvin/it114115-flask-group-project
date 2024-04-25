@@ -5,7 +5,7 @@ from app import app, db, login
 import jwt
 from sqlalchemy import and_, func, select
 from flask_login import UserMixin
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql.functions import coalesce
 
@@ -285,7 +285,7 @@ class Answer(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    votes = db.relationship('AnswerVote', backref='answer', lazy='dynamic')
+    votes = db.relationship('AnswerVote', backref='answer', lazy='dynamic', cascade='all, delete-orphan')
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     accepted = db.Column(db.Boolean, default=False)
     edited_at = db.Column(db.DateTime, nullable=True)

@@ -4,7 +4,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, \
     Length
 from flask_babel import _, lazy_gettext as _l
-from app.models import User
+from app.models import User, Post ,Tag
 from markupsafe import Markup
 
 class LoginForm(FlaskForm):
@@ -67,6 +67,7 @@ class PostVoteForm(FlaskForm):
     upvote = SubmitField(_l('upvote'))
     downvote = SubmitField(_l('downvote'))
 
+
 class AnswerVoteForm(FlaskForm):
     upvote = SubmitField(_l('upvote'))
     downvote = SubmitField(_l('downvote'))
@@ -77,6 +78,8 @@ class PostForm(FlaskForm):
     tag = StringField(_l('tags'), validators=[DataRequired()])
     submit = SubmitField(_l('Submit'))
 
+
 class AnswerForm(FlaskForm):
     body = TextAreaField(_l('Your Answer'), validators=[DataRequired()])
     submit = SubmitField(_l('Submit'))
+    delete = SubmitField(_l('delete'))
