@@ -193,15 +193,16 @@ def tag(id):
     tag = Tag.query.filter_by(id=id).first_or_404()
     sort_by = request.args.get('sort_by')
     if request.method == 'POST':
-        if request.form['submit_button'] == 'Follow':
+        print(request.form['submit_button'].lower())
+        if 'follow' in request.form['submit_button'].lower():
             current_user.toggle_follow_tag(tag)
             db.session.commit()
-            flash(_('You followed %(tag)s!', tag=tag.name), 'success')
+            flash(_('Success'), 'success')
             return redirect(url_for('tag',id=tag.id))
-        elif request.form['submit_button'] == 'Ignore':
+        elif 'ignore' in request.form['submit_button'].lower():
             current_user.toggle_ignore_tag(tag)
             db.session.commit()
-            flash(_('You ignored %(tag)s.', tag=tag.name), 'success')
+            flash(_("Success"), 'success')
             return redirect(url_for('tag',id=tag.id))
         
     elif request.method == 'GET':

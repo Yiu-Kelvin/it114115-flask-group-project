@@ -118,10 +118,17 @@
    <h3>{{ answers | length }} answers:</h3>
    <div class="dropdown ">
       <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      Sort by
+        Sort by
+        {% if request.args.get("sort_by") == "created" %}
+            Date Created (newest)
+        {% elif request.args.get("sort_by") == "edited" %}
+            Date Edited (newest)
+        {% else %}
+            Votes (highest)
+        {% endif %}
       </button>
       <ul class="dropdown-menu">
-         <li><a class="dropdown-item" href="{{ url_for('post', id=post.id) }}">Votes</a></li>
+         <li><a class="dropdown-item" href="{{ url_for('post', id=post.id) }}">Votes (highest)</a></li>
          <li><a class="dropdown-item" href="{{ url_for('post', id=post.id, sort_by='created') }}">Date Created (newest)</a></li>
          <li><a class="dropdown-item" href="{{ url_for('post', id=post.id, sort_by='edited') }}">Date Modified (newest)</a></li>
       </ul>
@@ -129,10 +136,7 @@
 </div>
     {% if answers %}
         {% for answer in answers %}
-            {# {% with answer=answer_i %} #}
-            
                 {% include "_answer.html.j2" %}
-            {# {% endwith %} #}
         {% endfor %}
         <hr>
         <h2>Answer this question</h2>

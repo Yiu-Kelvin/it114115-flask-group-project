@@ -4,8 +4,8 @@
 {% block app_content %}
     <h1>{{ _('Questions tagged with %(tagName)s', tagName=tag.name) }}</h1>
     <form action="/tag/{{ tag.id }}" method="post">
-        <input class="btn btn-primary btn-lg {% if followed %} disabled{% endif %}" type="submit" name="submit_button" value="Follow">
-        <input class="btn btn-secondary btn-lg {% if ignored %} disabled {% endif %}" type="submit" name="submit_button" value="Ignore">
+        <input class="btn btn-primary btn-lg" type="submit" name="submit_button" value="{% if followed %} Unfollow tag {% else %} Follow tag {% endif %}">
+        <input class="btn btn-secondary btn-lg" type="submit" name="submit_button" value="{% if ignored %} Unignore tag {% else %} Ignore tag {% endif %}">
     </form>
     <hr>
         <div class="dropdown ">
