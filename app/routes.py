@@ -149,10 +149,10 @@ def post(id):
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
-        # users = post.author.posts_from_followed_user
-        # print(users)
-        # send_answered_notification(users,post.author, post.id)
-        # flash(_('answer submitted'), 'success')
+        users = post.followers
+        print(users)
+        send_answered_notification(users,post.author, post.id)
+        flash(_('answer submitted'), 'success')
 
     
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)

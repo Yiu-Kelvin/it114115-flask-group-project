@@ -271,6 +271,7 @@ class Post(db.Model):
     edited_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     tags = db.relationship('Tag', secondary=post_tags, lazy='dynamic', backref=db.backref('posts', lazy='dynamic'))
+    followers = db.relationship('User', secondary=followed_post, lazy='dynamic', backref=db.backref('followed_posts', lazy='dynamic'))
     votes = db.relationship('PostVote', backref='post', lazy='dynamic')
     answers = db.relationship('Answer', backref='post', lazy='dynamic')
 
@@ -295,6 +296,10 @@ class Post(db.Model):
         if self.is_tag_added(tag):
             self.tags.remove(tag)
 
+    def followers(self):
+        return User.query.join(
+            followed_post, followed_post.c.post_id == Post.id
+        ).filter(followed_post.c.user_id == self.id)
             
     @hybrid_property            
     def total_votes(self):
