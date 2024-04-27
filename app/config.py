@@ -9,7 +9,7 @@ class Config(object):
     if os.environ.get('testdb') == "True": 
         SQLALCHEMY_DATABASE_URI = "sqlite://"
     else:
-        SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://flaskuser:1234@flask-db:3306/flaskdb'
+        SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://flaskuser:1234@mycluster:3306/flaskdb'
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False

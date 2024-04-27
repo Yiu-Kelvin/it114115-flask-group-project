@@ -1,0 +1,18 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: lb
+  annotations:
+    cloud.google.com/load-balancer-type: "External"
+spec:
+  selector:
+    app: flask
+  ports:
+  - protocol: TCP
+    port: 90
+    targetPort: web
+    nodePort: 30002
+  type: LoadBalancer
+  # externalIPs:
+  # - 192.168.64.2
