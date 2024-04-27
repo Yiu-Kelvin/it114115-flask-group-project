@@ -1,0 +1,34 @@
+{% macro show_pagination(pagination, args) -%}
+
+    <nav aria-label="...">
+        {% set prev_url = url_for(request.endpoint, page=pagination.prev_num ,sort_by=request.args.get("sort_by"),  **args or {}) if pagination.prev_num else None %}
+        {% set next_url = url_for(request.endpoint, page=pagination.next_num , sort_by=request.args.get("sort_by"),  **args or {}) if pagination.next_num else None %}
+        <ul class="pagination justify-content-center">
+            <li class="previous{% if not prev_url %} page-item disabled {% endif %}">
+                <a class="page-link" href="{{ prev_url or '#' }}">
+                    <span aria-hidden="true">&larr;</span> {{ _('Prev') }}
+                </a>
+            </li>
+
+            {% for page in range(pagination.pages) %}
+                {% set page = page + 1 %}
+                {% if page == pagination.page %}
+                    <li class="page-item active">
+                        <a class="page-link" href="{{ url_for(request.endpoint, page=page,sort_by=request.args.get('sort_by'),  **args or {}) }}">{{ page }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for(request.endpoint, page=page,sort_by=request.args.get('sort_by'),  **args or {}) }}">{{ page }}</a>
+                    </li>
+                {% endif %}
+                
+            {% endfor %}
+            <li class="next{% if not next_url %} page-item disabled{% endif %}">
+                <a  class="page-link" href="{{ next_url or '#' }}">
+                    {{ _('Next') }} <span aria-hidden="true">&rarr;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+{% endmacro %}

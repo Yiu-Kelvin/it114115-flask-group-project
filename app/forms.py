@@ -4,8 +4,8 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, \
     Length
 from flask_babel import _, lazy_gettext as _l
-from app.models import User
-
+from app.models import User, Post ,Tag
+from markupsafe import Markup
 
 class LoginForm(FlaskForm):
     username = StringField(_l('Username'), validators=[DataRequired()])
@@ -63,7 +63,23 @@ class EditProfileForm(FlaskForm):
             if user is not None:
                 raise ValidationError(_('Please use a different username.'))
 
+class PostVoteForm(FlaskForm):
+    upvote = SubmitField(_l('upvote'))
+    downvote = SubmitField(_l('downvote'))
 
+
+class AnswerVoteForm(FlaskForm):
+    upvote = SubmitField(_l('upvote'))
+    downvote = SubmitField(_l('downvote'))
+    
 class PostForm(FlaskForm):
-    post = TextAreaField(_l('Say something'), validators=[DataRequired()])
+    title = StringField(_l('title'), validators=[DataRequired()])
+    body = TextAreaField(_l('body'), validators=[DataRequired()])
+    tag = StringField(_l('tags'), validators=[DataRequired()])
     submit = SubmitField(_l('Submit'))
+
+
+class AnswerForm(FlaskForm):
+    body = TextAreaField(_l('Your Answer'), validators=[DataRequired()])
+    submit = SubmitField(_l('Submit'))
+    delete = SubmitField(_l('delete'))

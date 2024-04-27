@@ -1,0 +1,35 @@
+{% extends "base.html.j2" %}
+{% from "macros/pagination.html.j2" import show_pagination with context %}
+{# {% import 'bootstrap/wtf.html' as wtf %} #}
+{% block app_content %}
+    <h1>{{ _('Questions tagged with %(tagName)s', tagName=tag.name) }}</h1>
+    <form action="/tag/{{ tag.id }}" method="post">
+        <input class="btn btn-primary btn-lg" type="submit" name="submit_button" value="{% if followed %} Unfollow tag {% else %} Follow tag {% endif %}">
+        <input class="btn btn-secondary btn-lg" type="submit" name="submit_button" value="{% if ignored %} Unignore tag {% else %} Ignore tag {% endif %}">
+    </form>
+    <hr>
+        <div class="dropdown ">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort by: 
+        {% if request.args.get("sort_by") == "created" %}
+            Date Created (newest)
+        {% elif request.args.get("sort_by") == "edited" %}
+            Date Edited (newest)
+        {% elif request.args.get("sort_by") == "answers" %}
+            Answers (highest)
+        {% else %}
+            Votes (highest)
+        {% endif %}
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, id=tag.id, page=page) }}">Votes (highest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, id=tag.id, sort_by='created', page=page) }}">Date Created (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, id=tag.id, sort_by='edited', page=page) }}">Date Modified (newest)</a></li>
+            <li><a class="dropdown-item" href="{{ url_for(request.endpoint, id=tag.id, sort_by='answers', page=page) }}">Answers (highest)</a></li>
+        </ul>
+    </div>
+    {% for post in posts %}
+        {% include "_post.html.j2" %}
+    {% endfor %}
+    {{ show_pagination(posts, {"id" : tag.id}) }}
+{% endblock app_content %}

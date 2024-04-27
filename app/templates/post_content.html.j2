@@ -1,0 +1,162 @@
+{% extends "base.html.j2" %}
+{# {% import 'bootstrap/wtf.html' as wtf %} #}
+
+{% block app_content %}
+
+<h1>{{post.title}}</h1>
+<div class="d-flex">
+   <p class="pe-3 mb-0">Asked {{ moment(post.created_at).fromNow() }}</p>
+    {% if post.edited_at %}
+        <p class="pe-3 mb-0">Edited {{ moment(post.edited_at).fromNow() }}</p>
+    {% endif %}
+</div>
+<hr>
+<div class="d-flex">
+    <div>
+     {# <button type="button" onclick="alert('Hello world!')">Click Me!</button> #}
+    </div>
+   <div class="d-flex flex-column text-center pe-4">
+      <form action="/post_vote/{{ post.id }}" method="post">
+                {{ voteform.csrf_token }}
+         <div><button class=" btn btn-outline-secondary mb-3 p-3 rounded-circle" name="upvote" value="upvote">
+            <i class="bi bi-caret-up-fill"></i>
+            </button>
+         </div>
+         <p>{{post.total_votes}}</p>
+         <div><button class="btn btn-outline-secondary  p-3 rounded-circle" name="downvote" value="downvote">
+            <i class="bi bi-caret-down-fill"></i>
+            </button>
+         </div>
+      </form>
+      <div>
+        <a class="icon-link icon-link-hover" href="{{ url_for('bookmark_post', id=post.id  ) }}">
+            {% if current_user.is_post_bookmarked(post) %}
+                <i class="bi bi-bookmark-fill fs-4"></i>
+            {% else %}
+                <i class="bi bi-bookmark fs-4"></i>
+            {% endif %}
+        </a>
+      </div>
+    <div>
+        <a class="icon-link icon-link-hover" href="{{ url_for('follow_post', id=post.id  ) }}">
+            {% if current_user.is_post_followed(post) %}
+                <i class="bi bi-bell-fill fs-4"></i>
+
+            {% else %}
+                <i class="bi bi-bell fs-4"></i>
+            {% endif %}
+        </a>
+      </div>
+   </div>
+   <div class="d-flex flex-column flex-grow-1">
+      <p>{{ post.body }}</p>
+      <div class="d-flex flex-fill overflow-visible">
+         {% for tag in post.tags %}
+            <span class="badge badge-pill bg-light me-2" style="max-height:23.6px;"><a href="{{ url_for('tag', id=tag.id) }}" >{{ tag.name }} </a></span>
+        {% endfor %}
+         <div class="text-end flex-fill">
+            <div class=" flex-fill">
+               <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="">
+               </span>
+               <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
+               <a href="/user/{{ post.author.id }}">1234</a>
+               asked {{ moment(post.created_at).fromNow() }}
+               {% if editform %}
+                   <button class="bi bi-pencil-fill btn-link btn" data-bs-toggle="modal" data-bs-target="#editModal"></button>
+               {% endif %}
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+        {# create a modal #}
+        {% if editform %}
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">Edit Post</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{{ url_for('edit_post', id=post.id) }}">
+                            {{ editform.csrf_token }}
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                {{ editform.title(class="form-control", value=post.title) }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="body" class="form-label">Body</label>
+                                {# had to do this to show default value #}
+                                <textarea class="form-control" id="body" name="body">{{ post.body }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                            {% set taglist = [] %}
+                            
+                            {% for tag in post.tags %}
+                                {# surpress printing 'none' on website #}
+                                {% set _ = taglist.append(tag.name) %}
+                            {% endfor %}
+                            {% set tagstring = ' '.join(taglist) %}
+
+                                <label for="tags" class="form-label">Tags</label>
+                                {{ editform.tag(class="form-control", value=tagstring) }}
+                            </div>
+                            {{ editform.submit(class="btn btn-primary", value="Save Changes") }}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+    <hr>
+    
+<div class="d-flex justify-content-between p-2">
+   <h3>{{ answers | length }} answers:</h3>
+   <div class="dropdown ">
+      <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Sort by
+        {% if request.args.get("sort_by") == "created" %}
+            Date Created (newest)
+        {% elif request.args.get("sort_by") == "edited" %}
+            Date Edited (newest)
+        {% else %}
+            Votes (highest)
+        {% endif %}
+      </button>
+      <ul class="dropdown-menu">
+         <li><a class="dropdown-item" href="{{ url_for('post', id=post.id) }}">Votes (highest)</a></li>
+         <li><a class="dropdown-item" href="{{ url_for('post', id=post.id, sort_by='created') }}">Date Created (newest)</a></li>
+         <li><a class="dropdown-item" href="{{ url_for('post', id=post.id, sort_by='edited') }}">Date Modified (newest)</a></li>
+      </ul>
+   </div>
+</div>
+    {% if answers %}
+        {% for answer in answers %}
+                {% include "_answer.html.j2" %}
+        {% endfor %}
+        <hr>
+        <h2>Answer this question</h2>
+    {% else %}
+        <p>no answers yet</p>
+        <hr>
+        <h2>Be the first to answer</h2>
+    {% endif %}
+    {% if answerform %}
+
+        <form action="/post/{{post.id}}" method="post">
+            {{ answerform.csrf_token }}
+            <div class="form-group">
+                <label>Answer</label>
+                {{ answerform.body(class_='form-control')  }}
+            </div>
+            <div class="form-group ">
+                {{ answerform.submit(class_='btn btn-primary mt-2') }}
+            </div>
+        </form>
+        <br/>   
+    {% endif %}
+{% endblock %}

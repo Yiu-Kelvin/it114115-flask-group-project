@@ -1,0 +1,14 @@
+{% extends "base.html.j2" %}
+{% from "macros/pagination.html.j2" import show_pagination with context %}
+
+{% block app_content %}
+    <h1>{{title}}</h1>
+    <hr>
+
+    {% for tag in tags %}
+        <a href="{{ url_for('tag', id=tag.id ) }}">{{tag.name}}</a>
+        <p>{{ tag.description }}</p>
+        <hr>
+    {% endfor %}
+    {{ show_pagination(pagination) }}
+{% endblock %}
