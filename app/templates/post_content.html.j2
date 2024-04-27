@@ -16,7 +16,7 @@
      {# <button type="button" onclick="alert('Hello world!')">Click Me!</button> #}
     </div>
    <div class="d-flex flex-column text-center pe-4">
-      <form action="/post_vote/{{ post.id }}" method="post">
+         <form action="/post_vote/{{ post.id }}" method="post">
                 {{ voteform.csrf_token }}
          <div><button class=" btn btn-outline-secondary mb-3 p-3 rounded-circle" name="upvote" value="upvote">
             <i class="bi bi-caret-up-fill"></i>
@@ -28,6 +28,7 @@
             </button>
          </div>
       </form>
+
       <div>
         <a class="icon-link icon-link-hover" href="{{ url_for('bookmark_post', id=post.id  ) }}">
             {% if current_user.is_post_bookmarked(post) %}
@@ -59,7 +60,7 @@
                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="">
                </span>
                <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
-               <a href="/user/{{ post.author.id }}">1234</a>
+               <a href="{{ url_for('user', username=post.author.username) }}">{{ post.author.username }}</a>
                asked {{ moment(post.created_at).fromNow() }}
                {% if editform %}
                    <button class="bi bi-pencil-fill btn-link btn" data-bs-toggle="modal" data-bs-target="#editModal"></button>
@@ -146,7 +147,6 @@
         <h2>Be the first to answer</h2>
     {% endif %}
     {% if answerform %}
-
         <form action="/post/{{post.id}}" method="post">
             {{ answerform.csrf_token }}
             <div class="form-group">

@@ -271,6 +271,7 @@ class Post(db.Model):
     edited_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     tags = db.relationship('Tag', secondary=post_tags, lazy='dynamic', backref=db.backref('posts', lazy='dynamic'))
+    followers = db.relationship('User', secondary=followed_post, lazy='dynamic', backref=db.backref('followed_posts', lazy='dynamic'))
     votes = db.relationship('PostVote', backref='post', lazy='dynamic')
     answers = db.relationship('Answer', backref='post', lazy='dynamic')
 
@@ -281,10 +282,24 @@ class Post(db.Model):
     def is_tag_added(self, tag):
         return self.tags.filter(post_tags.c.tag_id == tag.id).count() > 0
 
+    def add_tag(self, tags):
+        
+        for tag in tags:
+            # effiency???
+            tag_obj = Tag.query.filter_by(name=tag).first()
+            if tag_obj:
+                self.tags.append(tag_obj)
+            else:
+                raise ValueError(f'Tag {tag} does not exist')
+
     def remove_tag(self, tag):
         if self.is_tag_added(tag):
             self.tags.remove(tag)
 
+    # def followers(self):
+    #     return User.query.join(
+    #         followed_post, followed_post.c.post_id == Post.id
+    #     ).filter(followed_post.c.user_id == self.id)
             
     @hybrid_property            
     def total_votes(self):
@@ -321,6 +336,15 @@ class Post(db.Model):
             self.edited_at = datetime.utcnow()
             db.session.commit()
 
+    def posts_sorted(sort_by=None):
+        if sort_by == "created":
+            return Post.query.order_by(Post.created_at.desc())
+        elif sort_by == "edited":
+            return Post.query.order_by(coalesce(Post.edited_at, Post.created_at).desc())
+        elif sort_by == "answers":
+            return Post.query.order_by(coalesce(Post.total_answers, 0).desc())
+        else:
+            return Post.query.order_by(coalesce(Post.total_votes, 0).desc())
     def accept_answer(self, answer):
         
         answer.accepted = not answer.accepted

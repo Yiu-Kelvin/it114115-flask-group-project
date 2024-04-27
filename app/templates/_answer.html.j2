@@ -41,7 +41,7 @@
         <div class="d-flex flex-fill overflow-hidden justify-content-end">
             <div class="text-end">
                <img src="{{ answer.author.avatar(70) }}" alt=""  width="16" height="16">
-               <a href="/user/{{ answer.author.id }}">{{ answer.author.username }}</a>
+                <a href="{{ url_for('user', username=answer.author.username) }}">{{ answer.author.username }}</a>
                answered {{ moment(answer.created_at).fromNow() }}
                 {% if answer.edited_at %}
                 

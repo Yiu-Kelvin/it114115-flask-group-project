@@ -149,11 +149,10 @@ def post(id):
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
-        users = post.followed_by_user.all()
+        users = answer.post.followers.all()
         print(users)
         send_answered_notification(users,post.author, post.id)
         flash(_('answer submitted'), 'success')
-
     
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
 
@@ -171,19 +170,18 @@ def accept_answer(id):
     return redirect(url_for('post', id=post.id))
 
 @app.route('/explore')
-@login_required
 def explore():
     sort_by = request.args.get('sort_by')
     page = request.args.get('page', 1, type=int)
-    posts = current_user.post_without_ignored(sort_by=sort_by).paginate(
-        page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-    next_url = url_for(
-        'explore', page=posts.next_num) if posts.next_num else None
-    prev_url = url_for(
-        'explore', page=posts.prev_num) if posts.prev_num else None
+    if current_user.is_authenticated:
+        posts = current_user.post_without_ignored(sort_by=sort_by).paginate(
+            page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
+    else:
+        posts = Post.posts_sorted(sort_by=sort_by).paginate(
+            page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
+        
     return render_template('index.html.j2', title=_('Explore'),
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url,pagination=posts)
+                           posts=posts.items,pagination=posts)
 
 
 @app.route('/tag/<id>', methods=['GET', 'POST'])
