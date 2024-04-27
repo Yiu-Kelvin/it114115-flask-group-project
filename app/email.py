@@ -15,7 +15,6 @@ def send_email(subject, sender, recipients, html_body):
     Thread(target=send_async_email, args=(app, msg)).start()
 
 def send_to_followed(followed_users, post_id):
-    
     with mail.connect() as conn:
         for user in followed_users:
             subject = "[StackOverflow] Someone answered a question which you followed"

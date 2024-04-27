@@ -149,7 +149,7 @@ def post(id):
         answer = Answer(body=answerform.body.data, author=current_user, post=post)
         db.session.add(answer)
         db.session.commit()
-        # users = post.followers
+        # users = answer.post.followers.all()
         # print(users)
         # send_answered_notification(users,post.author, post.id)
         # flash(_('answer submitted'), 'success')

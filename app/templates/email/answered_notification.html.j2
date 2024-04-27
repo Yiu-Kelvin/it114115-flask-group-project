@@ -1,0 +1,8 @@
+<p>Dear {{ user.username }},</p>
+<p> 
+    {% if author %}
+        Someone has answered your question <a href="{{ url_for('post', id=post_id, _external=True) }}">Click Here</a> to view it
+    {% else %}
+        Someone has answered a question that you followed <a href="{{ url_for('post', id=post_id, _external=True) }}">Click Here</a> to view it
+    {% endif %}
+</p>

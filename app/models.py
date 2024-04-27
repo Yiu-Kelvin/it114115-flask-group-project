@@ -296,10 +296,10 @@ class Post(db.Model):
         if self.is_tag_added(tag):
             self.tags.remove(tag)
 
-    def followers(self):
-        return User.query.join(
-            followed_post, followed_post.c.post_id == Post.id
-        ).filter(followed_post.c.user_id == self.id)
+    # def followers(self):
+    #     return User.query.join(
+    #         followed_post, followed_post.c.post_id == Post.id
+    #     ).filter(followed_post.c.user_id == self.id)
             
     @hybrid_property            
     def total_votes(self):
