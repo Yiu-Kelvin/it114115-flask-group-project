@@ -66,13 +66,6 @@ resource "kubectl_manifest" "crd" {
   yaml_body = local.crd_yamls[count.index]
 }
 
-resource "kubectl_manifest" "mysql-operator" {
-  count     = length(local.mysql_operator_yamls)
-  yaml_body = local.mysql_operator_yamls[count.index]
-
-  depends_on = [kubectl_manifest.crd]
-  
-}
 
 resource "kubectl_manifest" "mycluster_cluster_secret" {
   yaml_body= <<YAML
@@ -96,13 +89,21 @@ metadata:
   namespace: default
 YAML
 }
+
+resource "kubectl_manifest" "mysql-operator" {
+  count     = length(local.mysql_operator_yamls)
+  yaml_body = local.mysql_operator_yamls[count.index]
+
+  depends_on = [kubectl_manifest.crd, kubectl_manifest.mycluster_cluster_secret, kubectl_manifest.mycluster_sa]
+}
+
 # https://github.com/hashicorp/terraform-provider-ku`bernetes/issues/1380#issuecomment-967022975
 resource "kubectl_manifest" "innodb" {
   yaml_body= <<YAML
 apiVersion: mysql.oracle.com/v2
 kind: InnoDBCluster
 metadata:
-  name: flask-db
+  name: mycluster
   namespace: default
 spec:
   instances: 3
@@ -115,4 +116,6 @@ spec:
   version: 8.3.0
   serviceAccountName: mycluster-sa
 YAML
+
+  depends_on = [kubectl_manifest.mycluster_cluster_secret, kubectl_manifest.mycluster_sa]
 }

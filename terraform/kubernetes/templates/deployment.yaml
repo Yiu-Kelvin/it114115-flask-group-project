@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: flask
-        image: flask:latest
-        imagePullPolicy: Never
+        image: it114115-flask-project-individual/flaskapp:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - name: web
           containerPort: 5000
