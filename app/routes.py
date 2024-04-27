@@ -145,14 +145,14 @@ def post(id):
         answers = Answer.query.join(Post).order_by(coalesce(Answer.total_votes, 0).desc()).filter(Post.id == id).all()
 
     editform = PostForm() if current_user == post.author else None 
-    # if answerform.validate_on_submit():
-    #     answer = Answer(body=answerform.body.data, author=current_user, post=post)
-    #     db.session.add(answer)
-    #     db.session.commit()
-    #     users = post.author.posts_from_followed_user
-    #     print(users)
-    #     send_answered_notification(users,post.author, post.id)
-    #     flash(_('answer submitted'), 'success')
+    if answerform.validate_on_submit():
+        answer = Answer(body=answerform.body.data, author=current_user, post=post)
+        db.session.add(answer)
+        db.session.commit()
+        # users = post.author.posts_from_followed_user
+        # print(users)
+        # send_answered_notification(users,post.author, post.id)
+        # flash(_('answer submitted'), 'success')
 
     
     return render_template('post_content.html.j2',answers=answers, post=post, answerform=answerform, voteform=PostVoteForm(),votes=post.total_votes,editform=editform)
