@@ -281,6 +281,16 @@ class Post(db.Model):
     def is_tag_added(self, tag):
         return self.tags.filter(post_tags.c.tag_id == tag.id).count() > 0
 
+    def add_tag(self, tags):
+        
+        for tag in tags:
+            # effiency???
+            tag_obj = Tag.query.filter_by(name=tag).first()
+            if tag_obj:
+                self.tags.append(tag_obj)
+            else:
+                raise ValueError(f'Tag {tag} does not exist')
+
     def remove_tag(self, tag):
         if self.is_tag_added(tag):
             self.tags.remove(tag)
