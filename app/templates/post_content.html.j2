@@ -59,7 +59,7 @@
                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="">
                </span>
                <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
-               <a href="/user/{{ post.author.id }}">1234</a>
+               <a href="/user/{{ post.author.username }}">1234</a>
                asked {{ moment(post.created_at).fromNow() }}
                {% if editform %}
                    <button class="bi bi-pencil-fill btn-link btn" data-bs-toggle="modal" data-bs-target="#editModal"></button>
