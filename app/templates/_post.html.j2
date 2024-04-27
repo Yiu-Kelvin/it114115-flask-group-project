@@ -34,7 +34,7 @@ $(document).ready(function() {
                 
         <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
         
-            <a href="/user/{{ post.author.id }}">{{ post.author.username }}</a>
+            <a href="/user/{{ post.author.username }}">{{ post.author.username }}</a>
          {{ _('asked %(when)s',
  when=moment(post.created_at).fromNow()) }}
      </div> 
