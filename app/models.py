@@ -336,6 +336,15 @@ class Post(db.Model):
             self.edited_at = datetime.utcnow()
             db.session.commit()
 
+    def posts_sorted(sort_by=None):
+        if sort_by == "created":
+            return Post.query.order_by(Post.created_at.desc())
+        elif sort_by == "edited":
+            return Post.query.order_by(coalesce(Post.edited_at, Post.created_at).desc())
+        elif sort_by == "answers":
+            return Post.query.order_by(coalesce(Post.total_answers, 0).desc())
+        else:
+            return Post.query.order_by(coalesce(Post.total_votes, 0).desc())
     def accept_answer(self, answer):
         
         answer.accepted = not answer.accepted

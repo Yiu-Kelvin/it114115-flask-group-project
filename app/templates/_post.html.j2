@@ -22,7 +22,7 @@ $(document).ready(function() {
   </div>
   <div class="d-flex flex-column ms-3 flex-fill" >
     <h3> 
-        <a href="/post/{{ post.id }}">{{ post.title }}</a>
+        <a href="{{ url_for('post', id=post.id) }}">{{ post.title }}</a>
     </h3>
         <p class="preview-text">{{ post.body|e }} </p>
     <div class="d-flex flex-fill overflow-visible">
@@ -34,7 +34,7 @@ $(document).ready(function() {
                 
         <img src="{{ post.author.avatar(70) }}" alt=""  width="16" height="16">
         
-            <a href="/user/{{ post.author.username }}">{{ post.author.username }}</a>
+            <a href="{{ url_for('user', username=post.author.username) }}">{{ post.author.username }}</a>
          {{ _('asked %(when)s',
  when=moment(post.created_at).fromNow()) }}
      </div> 
