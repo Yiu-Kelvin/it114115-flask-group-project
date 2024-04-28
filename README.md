@@ -1,17 +1,4 @@
-# How to create translation
-Run following commands
-```
-cd app/
-mkdir translations
-pybabel extract -F babel.cfg -k lazy_gettext -o translations/messages.pot .
-pybabel init -i translations/messages.pot -d translations -l en
-pybabel init -i translations/messages.pot -d translations -l es
-pybabel init -i translations/messages.pot -d translations -l zh
-pybabel compile -d translations
-```
-
-# How to update translation
-```
-cd app/
-pybabel update -i translations/messages.pot -d translations
-```
+# Technical spec:
+Bootstrap 5.2.3
+Python 3.9.18
+Mysql 8.0.36
