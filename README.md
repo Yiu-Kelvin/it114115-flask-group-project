@@ -1,4 +1,3 @@
-mycluster
 # How to create translation
 Run following commands
 ```
